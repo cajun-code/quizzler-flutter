@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
-
+import 'package:rflutter_alert/rflutter_alert.dart';
+import 'quiz_brain.dart';
 void main() => runApp(Quizzler());
+
+QuizBrain quizBrain = QuizBrain();
 
 class Quizzler extends StatelessWidget {
   @override
@@ -25,6 +28,39 @@ class QuizPage extends StatefulWidget {
 }
 
 class _QuizPageState extends State<QuizPage> {
+
+  List<Icon> scoreKeeper = [];
+  //Icon(Icons.check, color: Colors.green,),
+  //Icon(Icons.close, color: Colors.red,),
+  
+  void nextQuestion(){
+    setState(() {
+      if(!quizBrain.isFinished()){
+        quizBrain.nextQuestion();
+      }else{
+        int correct = quizBrain.getCorrectCount();
+        int questions = quizBrain.getQuestionCount();
+        Alert(
+            context: context,
+            title: "Finished",
+            desc: "You have $correct//$questions correct")
+        .show();
+        quizBrain.resetQuiz();
+        scoreKeeper.clear();
+      }
+    });
+  }
+  void validateAnswer(bool ans){
+
+    setState(() {
+      if(quizBrain.checkAnswer(ans)){
+        scoreKeeper.add(Icon(Icons.check, color: Colors.green,));
+      } else{
+        scoreKeeper.add(Icon(Icons.close, color: Colors.red,));
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -37,7 +73,7 @@ class _QuizPageState extends State<QuizPage> {
             padding: EdgeInsets.all(10.0),
             child: Center(
               child: Text(
-                'This is where the question text will go.',
+                quizBrain.getQuestion(),
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 25.0,
@@ -62,6 +98,8 @@ class _QuizPageState extends State<QuizPage> {
               ),
               onPressed: () {
                 //The user picked true.
+                validateAnswer(true);
+                nextQuestion();
               },
             ),
           ),
@@ -80,11 +118,13 @@ class _QuizPageState extends State<QuizPage> {
               ),
               onPressed: () {
                 //The user picked false.
+                validateAnswer(false);
+                nextQuestion();
               },
             ),
           ),
         ),
-        //TODO: Add a Row here as your score keeper
+        Row(children: scoreKeeper,)
       ],
     );
   }
